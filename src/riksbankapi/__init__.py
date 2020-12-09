@@ -36,4 +36,7 @@ def currencyrates():
                  searchGroupSeries=series)
     result = client.service.getInterestAndExchangeRates(searchRequestParameters=query)
     #print(result)
-    print (";".join(["{}={}".format(str(s['seriesid']).strip(),s['resultrows'][0]['value']) for s in result['groups'][0]['series']]))
+    def avg(s):
+       return sum(filter(lambda x: x is not None, [x['value'] for x in s['resultrows']]))/len(s['resultrows']) 
+
+    print (";".join(["{}={}".format(str(s['seriesid']).strip(),avg(s)) for s in result['groups'][0]['series']]))
