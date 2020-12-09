@@ -8,7 +8,11 @@ wsdl = os.environ.get('RIKSBANKWSDL','https://swea.riksbank.se/sweaWS/wsdl/sweaW
 client = Client(wsdl)
 from datetime import datetime, date, timedelta
 
-foreign_rates_groupid=int(os.environ.get('RATESGROUP',"130"))
+foreign_rates_groupid=int(os.environ.get('RATESGROUP',"11"))
+
+def ratesgroup():
+    result = client.service.getInterestAndExchangeGroupNames(languageid="en")
+    return result
 
 
 def currencyrates():
@@ -17,17 +21,19 @@ def currencyrates():
     separated list of currencyexchange names from riksbanken.se using daily avg aggregation
     :return: none
     """
+    #print(ratesgroup()) 
     rates = os.environ.get("EXCHANGERATES",'SEKEURPMI;SEKUSDPMI')
     series = [dict(groupid=foreign_rates_groupid, seriesid=id) for id in rates.split(';')]
+    #print(series)
     query = dict(languageid='en',
-                 min=True,
+                 min=False,
                  max=True,
-                 ultimo=True,
-                 aggregateMethod='W',
+                 ultimo=False,
+                 aggregateMethod='D',
                  avg=True,
                  dateto=date.today(),
                  datefrom=date.today() - timedelta(days=7),
                  searchGroupSeries=series)
     result = client.service.getInterestAndExchangeRates(searchRequestParameters=query)
-    print(result)
-    print (";".join(["{}={}".format(str(s['seriesid']).strip(),s['resultrows'][0]['average']) for s in result['groups'][0]['series']]))
+    #print(result)
+    print (";".join(["{}={}".format(str(s['seriesid']).strip(),s['resultrows'][0]['value']) for s in result['groups'][0]['series']]))
